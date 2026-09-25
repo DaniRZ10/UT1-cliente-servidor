@@ -61,4 +61,12 @@ Resultado: `Uncaught TypeError: Failed to execute 'readAsText' on 'FileReader': 
 
 ## 4. Análisis de bloqueo síncrono
 
-*(pendiente)*
+## 4. Análisis de bloqueo síncrono
+
+![Network - script grande](capturas/09-network-script-grande.png)
+
+El script más pesado detectado es `kevlar_base_module,kevlar_main_module,kevlar_base_sync_mod_chunk`, con 2.17 MB.
+
+JavaScript se ejecuta en un único hilo (el hilo principal), que es el mismo que dibuja la página y responde a los clics y el scroll. Si un script de este tamaño se cargase y ejecutase de forma síncrona y tradicional (bloqueante, sin la naturaleza asíncrona y orientada a eventos del scripting web), el navegador tendría que parar todo lo demás — pintado, scroll, clics — hasta terminar de descargar, compilar y ejecutar esos 2+ MB. En la práctica esto se traduce en una página completamente congelada durante ese tiempo: el usuario no podría interactuar con nada, y en casos extremos el propio navegador mostraría el aviso de "página no responde".
+
+Gracias al modelo asíncrono y basado en eventos (descargas en segundo plano, `event loop`, callbacks/promesas), el navegador puede seguir pintando y atendiendo al usuario mientras ese script se descarga y procesa, evitando ese bloqueo total y manteniendo la página utilizable.
