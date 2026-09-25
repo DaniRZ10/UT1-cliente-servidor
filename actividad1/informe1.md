@@ -25,7 +25,7 @@ Inspeccionando el `Response` del HTML se comprueba que el `<body>` no trae el co
 ## 2. Rendimiento del motor (Performance / JIT)
 
 ![Performance - Evaluate script](capturas/04-performance-evaluate-script.png)
-![Performance - Compile script](capturas/05-performance-compile-script.png)
+![Performance - Compile script](capturas/05-performance-compile-code.png)
 ![Performance - Parse HTML](capturas/06-performance-parse-html.png)
 
 Se grabó ~5 segundos de actividad con la pestaña Performance mientras cargaba e interactuaba con la página. En el hilo **Main** aparece una estructura anidada:
