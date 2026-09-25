@@ -41,7 +41,6 @@ Esta anidación muestra cómo trabaja el motor V8: al parsear el HTML, el navega
 
 ## 3. Consola y Sandbox
 
-## 3. Consola y Sandbox
 
 ![Console - benigno](capturas/08-console-benigno.png)
 ![Console - sandbox](capturas/07-console-sandbox.png)
@@ -58,8 +57,6 @@ Resultado: `Uncaught TypeError: Failed to execute 'readAsText' on 'FileReader': 
 `FileReader` solo acepta objetos `Blob`/`File` ya seleccionados explícitamente por el usuario (por ejemplo mediante un `<input type="file">` o arrastrando un archivo). JavaScript de navegador no tiene ninguna API para acceder a un archivo del disco por su ruta. Esta restricción es vital: impide que cualquier web pueda leer archivos del sistema sin consentimiento activo del usuario, evitando robo de datos o credenciales con solo visitar una página maliciosa.
 
 ---
-
-## 4. Análisis de bloqueo síncrono
 
 ## 4. Análisis de bloqueo síncrono
 
