@@ -1,0 +1,50 @@
+# Informe Técnico — Auditoría de Rendimiento Web
+
+**Web analizada:** YouTube (SPA)
+**Herramienta:** DevTools de Chrome (Network, Performance, Console)
+
+---
+
+## 1. Auditoría de Red
+
+![Network - Doc](capturas/01-network-doc.png)
+![Network - JS](capturas/02-network-js.png)
+![Response body - skeleton vacío](capturas/03-response-body-skeleton.png)
+
+Al recargar YouTube con la caché desactivada:
+
+- El HTML inicial pesa 99.5 kB transferidos (887 kB descomprimidos).
+- Se descargan unos 52 recursos JavaScript, con un total aproximado de 3.9 MB transferidos (~19 MB descomprimidos). Un solo archivo, el módulo base del framework interno de YouTube ("Kevlar", basado en Polymer), pesa 2.17 MB.
+
+Inspeccionando el `Response` del HTML se comprueba que el `<body>` no trae el contenido real: hay bloques `<div class="video-title text-shell skeleton-bg-color"></div>` vacíos, es decir, un esqueleto de carga (skeleton screen) sin texto ni datos, usado solo para mostrar una animación de placeholder mientras se completa la carga real. El `<head>`, por su parte, ya viene cargado de JavaScript de arranque (`WIZ_global_data`, `ytcfg`, interceptores de Polymer) antes de que haya contenido visible.
+
+**Conclusión:** YouTube utiliza Client-Side Rendering (CSR). El servidor no envía el HTML ya renderizado con la información visible, sino una plantilla vacía más un volumen grande de JavaScript (~19 MB) que, al ejecutarse en el navegador, obtiene los datos y construye dinámicamente el DOM real (títulos, miniaturas, metadatos). El tamaño relativamente alto del HTML inicial (887 kB) no contradice esto: se debe al peso del propio esqueleto y a la configuración JS embebida, no a contenido ya renderizado.
+
+---
+
+## 2. Rendimiento del motor (Performance / JIT)
+
+![Performance - Evaluate script](capturas/04-performance-evaluate-script.png)
+![Performance - Compile script](capturas/05-performance-compile-script.png)
+![Performance - Parse HTML](capturas/06-performance-parse-html.png)
+
+Se grabó ~5 segundos de actividad con la pestaña Performance mientras cargaba e interactuaba con la página. En el hilo **Main** aparece una estructura anidada:
+
+- **Parse HTML**: 49.83 ms de duración total (17.50 ms de tiempo propio).
+- Dentro de ese bloque, **Evaluate script**, y dentro de este, **Compile script**: 25.60 ms de duración total (15.60 ms de tiempo propio), sobre un script inline del propio HTML (línea 17 del documento).
+
+Esta anidación muestra cómo trabaja el motor V8: al parsear el HTML, el navegador encuentra una etiqueta `<script>` síncrona (sin `async` ni `defer`) y **detiene el parseo del documento** para procesarla. Antes de ejecutarlo, V8 debe **compilarlo** (fase JIT: convierte el código fuente en bytecode/código máquina), y solo entonces lo evalúa. Terminado esto, el parseo del HTML se reanuda.
+
+**Conclusión:** YouTube ejecuta al menos un script de forma bloqueante durante la carga inicial, y la compilación JIT tiene un coste real y medible (15.6 ms en este caso), especialmente porque al ser un script inline no se beneficia de caché de compilación ("script not eligible"), a diferencia de los scripts externos en visitas repetidas.
+
+---
+
+## 3. Consola y Sandbox
+
+*(pendiente)*
+
+---
+
+## 4. Análisis de bloqueo síncrono
+
+*(pendiente)*
